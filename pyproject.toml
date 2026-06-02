@@ -1,0 +1,16 @@
+[project]
+name = "lapala"
+version = "0.1.0"
+description = "Encuentra tu pega en Chile — job aggregator, CV builder, and AI matching"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

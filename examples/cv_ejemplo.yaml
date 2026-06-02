@@ -1,0 +1,129 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/rendercv/rendercv/refs/tags/v2.8/schema.json
+cv:
+  name: Cristóbal Flores Villegas
+  headline: Desarrollador Python / Fullstack — Diseño de APIs y Automatización
+  location: Santiago, Chile
+  email: cristobal.floresv@gmail.com
+  phone: "+56 9 5621 7071"
+  social_networks:
+    - network: LinkedIn
+      username: cristóbal-flores-villegas
+    - network: GitHub
+      username: yellow-23
+
+  sections:
+    perfil:
+      - Desarrollador Python/Fullstack con experiencia comprobable en diseño e implementación de APIs REST, arquitectura de microservicios sobre GCP y automatización de pipelines de datos. Aplico principios SOLID y Clean Code, trabajo bajo metodologías ágiles (Scrum/Kanban) y gestiono flujos colaborativos con Git en entornos productivos. Práctica profesional en CMPC (entorno enterprise) y co-fundador de Tame SpA.
+
+    experiencia:
+      - company: Tame SpA
+        position: Co-Fundador y Desarrollador Python/Fullstack
+        date:
+        start_date: "2024-03"
+        end_date: present
+        location: Santiago, Chile
+        summary:
+        highlights:
+          - Diseñé e implementé arquitectura fullstack con **Python/FastAPI** como backend central y **React Native/Expo** como cliente móvil, aplicando principios **SOLID y Clean Code** — 5 repositorios en producción sobre **GCP**.
+          - Construí microservicios REST desplegados en **Cloud Run (GCP)**, con gestión de ramas Git, revisiones de código y flujos de **integración y despliegue continuo (CI/CD)**.
+          - Implementé autenticación **JWT/Firebase**, queries geoespaciales con **PostGIS**, notificaciones push y generación automática de documentos — incluyendo **pruebas funcionales y de regresión** de los endpoints principales.
+          - Reemplacé registro agrícola manual (papel/Excel) con app móvil de escaneo QR, reportes de nómina automáticos y mapas interactivos de parcelas.
+          - Proyecto **Alartia** ganador del Programa de Emprendimiento Innovador Endowment UNAB 2025.
+
+      - company: CMPC
+        position: Práctica Profesional — Ingeniería de Datos
+        date:
+        start_date: "2024-11"
+        end_date: "2025-07"
+        location: Santiago, Chile
+        summary:
+        highlights:
+          - Diseñé e implementé **Artisam**, sistema de automatización de pipelines de datos en **Python** sobre GCP (Cloud Run, Cloud Storage, BigQuery), eliminando tareas manuales del equipo TI.
+          - Trabajé bajo metodologías ágiles **(Scrum/Kanban)** en entorno enterprise de **alta disponibilidad**, con orientación a resultados de negocio y calidad de datos.
+          - Participé en decisiones de arquitectura de datos con foco en trazabilidad y gobierno, gestionando flujos colaborativos con **Git** (ramas, revisiones de código y análisis de cobertura).
+
+    educación:
+      - institution: Universidad Andrés Bello
+        area: Ingeniería Civil Informática
+        degree: Ing.
+        date:
+        start_date: "2021-03"
+        end_date: present
+        location: Santiago, Chile
+        summary:
+        highlights:
+          - Titulación estimada diciembre 2026.
+          - Ganador Programa de Emprendimiento Innovador Endowment UNAB 2025.
+
+      - institution: Desafío Latam
+        area: Certificación Fullstack JavaScript
+        degree:
+        date:
+        start_date: "2024-09"
+        end_date: "2026-02"
+        location: Santiago, Chile
+        summary:
+        highlights:
+
+    habilidades:
+      - label: Lenguajes
+        details: Python, TypeScript, JavaScript
+      - label: Backend y APIs
+        details: "FastAPI, Node.js, NestJS, PostgreSQL, PostGIS, Redis — microservicios, SOA, APIs REST"
+      - label: Frontend y Mobile
+        details: React, React Native, Expo, Tailwind CSS, Vite
+      - label: Cloud e Infra
+        details: GCP (Cloud Run, BigQuery, Cloud Storage), Firebase, Supabase
+      - label: Prácticas
+        details: "SOLID, Clean Code, Scrum, Kanban, CI/CD, Git (ramas y revisiones), pruebas unitarias / funcionales / regresión"
+      - label: Herramientas
+        details: Git, WeasyPrint, AI Tools (Claude, OpenAI)
+
+    idiomas:
+      - label: Español
+        details: Nativo
+      - label: Inglés
+        details: Intermedio
+
+design:
+  theme: classic
+
+locale:
+  language: spanish
+  present: Presente
+  month_abbreviations:
+    - Ene
+    - Feb
+    - Mar
+    - Abr
+    - May
+    - Jun
+    - Jul
+    - Ago
+    - Sep
+    - Oct
+    - Nov
+    - Dic
+  month_names:
+    - Enero
+    - Febrero
+    - Marzo
+    - Abril
+    - Mayo
+    - Junio
+    - Julio
+    - Agosto
+    - Septiembre
+    - Octubre
+    - Noviembre
+    - Diciembre
+
+settings:
+  current_date: today
+  render_command:
+    output_folder: rendercv_output
+    dont_generate_markdown: false
+    dont_generate_html: true
+    dont_generate_typst: false
+    dont_generate_pdf: false
+    dont_generate_png: true

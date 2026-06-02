@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: packages/scrapers
+        working-directory: src/scrapers
 
     steps:
       - uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: packages/scrapers/requirements.txt
+          cache-dependency-path: src/scrapers/requirements.txt
 
       - name: Install dependencies
         run: pip install -r requirements.txt

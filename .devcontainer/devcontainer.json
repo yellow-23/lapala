@@ -1,0 +1,21 @@
+{
+  "name": "LaPala",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "20" },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "postCreateCommand": "npm install -g pnpm && pnpm install && pip install -r src/scrapers/requirements.txt",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "astro-build.astro-vscode",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+  "forwardPorts": [4321, 8000]
+}
