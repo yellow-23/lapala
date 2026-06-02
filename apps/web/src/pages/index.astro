@@ -1,0 +1,15 @@
+---
+import Layout from "../layouts/Layout.astro";
+import JobList from "../features/jobs/JobList.tsx";
+---
+
+<Layout title="LaPala — Encuentra tu pega en Chile">
+  <main class="max-w-5xl mx-auto px-4 py-12">
+    <header class="mb-10 text-center">
+      <h1 class="text-4xl font-bold text-neutral-900 mb-2">🪚 LaPala</h1>
+      <p class="text-neutral-500 text-lg">Encuentra tu pega en Chile — ofertas tech, actualizadas cada 6 horas</p>
+    </header>
+
+    <JobList client:load />
+  </main>
+</Layout>

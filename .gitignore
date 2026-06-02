@@ -1,0 +1,30 @@
+# env
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+env/
+dist/
+*.pyo
+
+# Node / Astro
+node_modules/
+.astro/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Output
+rendercv_output/
+*.xlsx
+*.csv
+
+# pnpm
+pnpm-debug.log
