@@ -1,5 +1,5 @@
 packages:
-  - "src/web"
+  - "web"
 allowBuilds:
   esbuild: set this to true or false
   sharp: set this to true or false

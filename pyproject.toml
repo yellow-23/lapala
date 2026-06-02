@@ -5,12 +5,8 @@ description = "Encuentra tu pega en Chile — job aggregator, CV builder, and AI
 requires-python = ">=3.12"
 
 [tool.ruff]
-line-length = 100
-src = ["src"]
+line-height = 100
+src = ["api", "scrapers"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-asyncio_mode = "auto"
