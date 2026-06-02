@@ -12,9 +12,9 @@ from db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 class Profile(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "profiles"
 
+    # FK to auth.users is enforced by Supabase RLS, not SQLAlchemy (auth schema is external)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("auth.users.id", ondelete="CASCADE"),
         nullable=False,
         unique=True,
     )

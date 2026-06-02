@@ -58,12 +58,19 @@ async def run(sources: list[str]) -> None:
         print("No jobs fetched.")
         return
 
-    rows = [to_row(j) for j in all_jobs]
-    # Upsert in chunks of 100
+    # Deduplicate by (source, source_id) before upserting
+    seen: set[tuple] = set()
+    unique_rows = []
+    for j in all_jobs:
+        key = (j.source, j.source_id)
+        if key not in seen:
+            seen.add(key)
+            unique_rows.append(to_row(j))
+
     chunk_size = 100
     total_upserted = 0
-    for i in range(0, len(rows), chunk_size):
-        chunk = rows[i : i + chunk_size]
+    for i in range(0, len(unique_rows), chunk_size):
+        chunk = unique_rows[i : i + chunk_size]
         db.table("jobs").upsert(chunk, on_conflict="source,source_id").execute()
         total_upserted += len(chunk)
 

@@ -3,6 +3,11 @@ from __future__ import annotations
 import asyncio
 import os
 from logging.config import fileConfig
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -31,7 +36,8 @@ async def run_migrations_online() -> None:
             lambda sync_conn: context.configure(
                 connection=sync_conn,
                 target_metadata=target_metadata,
-                include_schemas=True,
+                include_schemas=False,
+                version_table_schema="public",
             )
         )
         async with conn.begin():

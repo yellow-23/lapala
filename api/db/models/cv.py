@@ -11,8 +11,8 @@ from db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 class CV(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "cvs"
 
+    # FK to auth.users is enforced by Supabase RLS, not SQLAlchemy (auth schema is external)
     user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("auth.users.id", ondelete="CASCADE"),
         nullable=False,
     )
     yaml: Mapped[str] = mapped_column(Text, nullable=False)
