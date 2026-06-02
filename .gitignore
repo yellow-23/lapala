@@ -28,3 +28,4 @@ rendercv_output/
 
 # pnpm
 pnpm-debug.log
+supabase/
