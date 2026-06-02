@@ -15,8 +15,7 @@ web/            Astro + React + Tailwind (frontend)
     ai/         generador, match (Fase 3)
 api/            FastAPI — /cv/render, /ai/generate-cv, /ai/match
 scrapers/       Python: GetOnBoardSource, ChiletrabajosSource
-supabase/
-  migrations/   SQL schema (jobs, profiles, cvs, matches + RLS)
+supabase/       gitignored — migraciones en repo privado tamecl/lapala-db
 examples/       CVs YAML de ejemplo (formato rendercv)
 .github/
   workflows/    ingest.yml: cron cada 6h → upsert jobs en Supabase
