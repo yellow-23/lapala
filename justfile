@@ -37,7 +37,13 @@ env:
 # ── DB ──────────────────────────────────────────────────────────────────────
 
 db-migrate:
-    supabase db push --file supabase/migrations/0001_init.sql
+    cd api && .venv/bin/alembic upgrade head
+
+db-revision msg:
+    cd api && .venv/bin/alembic revision --autogenerate -m "{{msg}}"
+
+db-downgrade:
+    cd api && .venv/bin/alembic downgrade -1
 
 # ── Scrapers ─────────────────────────────────────────────────────────────────
 
