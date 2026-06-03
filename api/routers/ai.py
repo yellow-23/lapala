@@ -57,7 +57,7 @@ def _extract_docx_text(data: bytes) -> str:
 
 
 @router.post("/analyze-cv")
-@limiter.limit("10/hour")
+@limiter.limit("5/day")
 async def analyze_cv(request: Request, file: UploadFile = File(...)):
     content_type = file.content_type or ""
     filename = file.filename or ""
@@ -110,7 +110,7 @@ async def analyze_cv(request: Request, file: UploadFile = File(...)):
 
 
 @router.post("/generate-cv")
-@limiter.limit("10/hour")
+@limiter.limit("5/day")
 async def generate_cv(request: Request, data: dict):
     context = data.get("context", "")
     if not context.strip():
@@ -131,7 +131,7 @@ async def generate_cv(request: Request, data: dict):
 
 
 @router.post("/rank-jobs")
-@limiter.limit("10/hour")
+@limiter.limit("5/day")
 async def rank_jobs(request: Request, data: dict):
     profile = data.get("profile", {})
     jobs = data.get("jobs", [])
@@ -180,7 +180,7 @@ Sé honesto. Considera rubro, experiencia y habilidades reales. Score 1-10."""
 
 
 @router.post("/match")
-@limiter.limit("30/hour")
+@limiter.limit("5/day")
 async def match_cv(request: Request, data: dict):
     cv_yaml = data.get("cv_yaml", "")
     job = data.get("job", {})

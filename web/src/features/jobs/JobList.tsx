@@ -43,6 +43,24 @@ function avatarColor(name: string) {
 
 const PAGE_SIZE = 30;
 
+function interleaveBySource(jobs: Job[]): Job[] {
+  const buckets = new Map<string, Job[]>();
+  for (const job of jobs) {
+    if (!buckets.has(job.source)) buckets.set(job.source, []);
+    buckets.get(job.source)!.push(job);
+  }
+  const sources = [...buckets.values()];
+  const result: Job[] = [];
+  let i = 0;
+  while (result.length < jobs.length) {
+    const bucket = sources[i % sources.length];
+    if (bucket.length > 0) result.push(bucket.shift()!);
+    i++;
+    if (sources.every((b) => b.length === 0)) break;
+  }
+  return result;
+}
+
 export default function JobList() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [search, setSearch] = useState("");
@@ -59,23 +77,49 @@ export default function JobList() {
     async function load() {
       setLoading(true);
       const supabase = getSupabase();
-      let q = supabase
-        .from("jobs")
-        .select(
-          "id,source,title,company,location,remote,url,description,tags,salary,posted_at,fetched_at",
-          { count: "exact" }
-        )
-        .order("fetched_at", { ascending: false })
-        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+      const SOURCES = ["bne", "chiletrabajos", "computrabajo", "getonbrd"];
+      const perSource = Math.ceil(PAGE_SIZE / SOURCES.length);
 
-      if (remote) q = q.eq("remote", true);
-      if (city) q = q.ilike("location", `%${city}%`);
-      if (search.length >= 2) q = q.ilike("title", `%${search}%`);
+      const SELECT = "id,source,title,company,location,remote,url,description,tags,salary,posted_at,fetched_at";
 
-      const { data, error, count } = await q;
-      if (!error && data) {
-        setJobs(data as Job[]);
-        if (count !== null) setTotal(count);
+      function applyFilters(q: ReturnType<typeof supabase.from>) {
+        if (remote) q = (q as any).eq("remote", true);
+        if (city) q = (q as any).ilike("location", `%${city}%`);
+        if (search.length >= 2) q = (q as any).ilike("title", `%${search}%`);
+        return q;
+      }
+
+      if (search.length >= 2 || city || remote) {
+        // Con filtros activos: query única normal
+        let q = supabase
+          .from("jobs")
+          .select(SELECT, { count: "exact" })
+          .order("fetched_at", { ascending: false })
+          .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+        q = applyFilters(q) as any;
+        const { data, error, count } = await q;
+        if (!error && data) {
+          setJobs(interleaveBySource(data as Job[]));
+          if (count !== null) setTotal(count);
+        }
+      } else {
+        // Sin filtros: query por fuente en paralelo para garantizar mezcla
+        const results = await Promise.all(
+          SOURCES.map((src) =>
+            supabase
+              .from("jobs")
+              .select(SELECT, { count: "exact" })
+              .eq("source", src)
+              .order("fetched_at", { ascending: false })
+              .range(page * perSource, (page + 1) * perSource - 1)
+          )
+        );
+        const mixed = interleaveBySource(
+          results.flatMap((r) => (r.data ?? []) as Job[])
+        );
+        const total = results.reduce((sum, r) => sum + (r.count ?? 0), 0);
+        setJobs(mixed);
+        setTotal(total);
       }
       setLoading(false);
     }

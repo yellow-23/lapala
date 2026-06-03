@@ -33,8 +33,8 @@ function scoreByKeywords(job: Job, keywords: string[]): number {
 }
 
 function UploadTab() {
-  const analyzeLimit = useAiLimit(10);
-  const rankLimit = useAiLimit(10);
+  const analyzeLimit = useAiLimit(5);
+  const rankLimit = useAiLimit(5);
   const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,11 +65,12 @@ function UploadTab() {
     try {
       const res = await fetch(`${API_URL}/ai/analyze-cv`, { method: "POST", body: form });
       if (res.status === 429) { analyzeLimit.markExhausted(); throw new Error("Limite de la hora alcanzado. Intenta en unos minutos."); }
-      analyzeLimit.updateFromHeaders(res.headers);
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.detail ?? `Error ${res.status}`);
       }
+      analyzeLimit.decrement();
+      analyzeLimit.updateFromHeaders(res.headers);
       const data: CVProfile = await res.json();
       setProfile(data);
       fetchMatches(data.keywords);
@@ -120,8 +121,9 @@ function UploadTab() {
         body: JSON.stringify({ profile: prof, jobs: jobs.slice(0, 15) }),
       });
       if (res.status === 429) { rankLimit.markExhausted(); throw new Error("Limite de la hora alcanzado."); }
-      rankLimit.updateFromHeaders(res.headers);
       if (!res.ok) throw new Error(`Error ${res.status}`);
+      rankLimit.decrement();
+      rankLimit.updateFromHeaders(res.headers);
       const data = await res.json();
       const rankMap = new Map<string, { score: number; reason: string }>(
         (data.rankings ?? []).map((r: { id: string; score: number; reason: string }) => [r.id, r])
@@ -150,7 +152,10 @@ function UploadTab() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* Contador siempre visible */}
+      <AiLimitBar remaining={analyzeLimit.remaining} limit={analyzeLimit.limit} singular="intento de analisis" plural="intentos de analisis" />
+
       {/* Dropzone */}
       {!profile && !analyzeLimit.canUse && <AiLimitBlocked />}
       {!profile && analyzeLimit.canUse && (
@@ -232,10 +237,7 @@ function UploadTab() {
             )}
           </div>
 
-          <div className="flex items-center gap-4 flex-wrap">
-            <AiLimitBar remaining={analyzeLimit.remaining} limit={analyzeLimit.limit} singular="analisis de CV" plural="analisis de CV" />
-            <AiLimitBar remaining={rankLimit.remaining} limit={rankLimit.limit} singular="rankeo con IA" plural="rankeos con IA" />
-          </div>
+          <AiLimitBar remaining={rankLimit.remaining} limit={rankLimit.limit} singular="rankeo con IA" plural="rankeos con IA" />
 
           {/* Matches */}
           <div>
@@ -328,7 +330,7 @@ function MatchJobCard({
     job.aiScore >= 8 ? "text-emerald-400" :
     job.aiScore >= 5 ? "text-yellow-400" : "text-red-400";
 
-  const matchLimit = useAiLimit(30);
+  const matchLimit = useAiLimit(5);
   const [detail, setDetail] = useState<DetailResult | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -350,10 +352,13 @@ function MatchJobCard({
         }),
       });
       if (res.status === 429) { matchLimit.markExhausted(); return; }
-      matchLimit.updateFromHeaders(res.headers);
       if (res.ok) {
         const d = await res.json();
-        if (d.score != null) setDetail(d);
+        if (d.score != null) {
+          matchLimit.decrement();
+          matchLimit.updateFromHeaders(res.headers);
+          setDetail(d);
+        }
       }
     } finally {
       setDetailLoading(false);
@@ -500,7 +505,7 @@ function MatchJobCard({
 // ── Generar CV tab ──────────────────────────────────────────────────────────
 
 function GenerateTab() {
-  const limit = useAiLimit(10);
+  const limit = useAiLimit(5);
   const [context, setContext] = useState("");
   const [generatedYaml, setGeneratedYaml] = useState("");
   const [genLoading, setGenLoading] = useState(false);
@@ -523,11 +528,12 @@ function GenerateTab() {
         throw new Error(body.detail ?? `Error ${res.status}`);
       }
       if (res.status === 429) { limit.markExhausted(); throw new Error("Limite de la hora alcanzado."); }
-      limit.updateFromHeaders(res.headers);
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.detail ?? `Error ${res.status}`);
       }
+      limit.decrement();
+      limit.updateFromHeaders(res.headers);
       const data = await res.json();
       setGeneratedYaml(data.yaml ?? "");
     } catch (e) {
@@ -624,7 +630,7 @@ Describe tu experiencia con tus propias palabras.`}
 // ── Match tab ───────────────────────────────────────────────────────────────
 
 function MatchTab() {
-  const limit = useAiLimit(30);
+  const limit = useAiLimit(5);
   const [cvYaml, setCvYaml] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [jobCompany, setJobCompany] = useState("");
@@ -649,6 +655,7 @@ function MatchTab() {
         throw new Error(body.detail ?? `Error ${res.status}`);
       }
       if (res.status === 429) { limit.markExhausted(); throw new Error("Limite de la hora alcanzado."); }
+      limit.decrement();
       limit.updateFromHeaders(res.headers);
       setResult(await res.json());
     } catch (e) {

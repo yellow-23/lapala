@@ -68,8 +68,8 @@ export function AiLimitBar({
         style={{ animation: justEmptied !== null ? "slideDown 0.25s ease" : undefined }}
       >
         {remaining > 0
-          ? `${remaining} ${label} restante${remaining !== 1 ? "s" : ""} esta hora`
-          : "Limite de esta hora alcanzado"}
+          ? `${remaining} ${label} restante${remaining !== 1 ? "s" : ""} hoy`
+          : "Limite de hoy alcanzado"}
       </span>
 
       <style>{`
@@ -86,12 +86,12 @@ export function AiLimitBar({
   );
 }
 
-export function AiLimitBlocked({ period = "hora" }: { period?: string }) {
+export function AiLimitBlocked() {
   return (
     <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-5 text-center space-y-1">
-      <p className="text-sm text-amber-300 font-medium">Limite de la {period} alcanzado</p>
+      <p className="text-sm text-amber-300 font-medium">Usaste tus 5 intentos de hoy</p>
       <p className="text-xs text-gray-500">
-        Vuelve en unos minutos — el limite se resetea cada hora.
+        Vuelve manana — el limite se resetea a medianoche.
       </p>
     </div>
   );

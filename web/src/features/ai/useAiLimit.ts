@@ -7,9 +7,16 @@ export interface LimitState {
 
 export function useAiLimit(defaultLimit: number) {
   const [state, setState] = useState<LimitState>({
-    remaining: null,
+    remaining: defaultLimit, // mostrar dots llenos desde el inicio
     limit: defaultLimit,
   });
+
+  function decrement() {
+    setState((s) => ({
+      ...s,
+      remaining: s.remaining !== null ? Math.max(0, s.remaining - 1) : null,
+    }));
+  }
 
   function updateFromHeaders(headers: Headers) {
     const remaining = headers.get("X-Ratelimit-Remaining") ?? headers.get("x-ratelimit-remaining");
@@ -29,5 +36,5 @@ export function useAiLimit(defaultLimit: number) {
   const canUse = state.remaining === null || state.remaining > 0;
   const used = state.remaining === null ? 0 : state.limit - state.remaining;
 
-  return { remaining: state.remaining, limit: state.limit, used, canUse, updateFromHeaders, markExhausted };
+  return { remaining: state.remaining, limit: state.limit, used, canUse, decrement, updateFromHeaders, markExhausted };
 }
