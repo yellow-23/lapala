@@ -1,12 +1,10 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.backends.legacy:build"
+
 [project]
 name = "lapala"
 version = "0.1.0"
-description = "Encuentra tu pega en Chile — job aggregator, CV builder, and AI matching"
-requires-python = ">=3.12"
 
-[tool.ruff]
-line-height = 100
-src = ["api", "scrapers"]
-
-[tool.ruff.lint]
-select = ["E", "F", "I", "UP"]
+[tool.setuptools]
+packages = []
