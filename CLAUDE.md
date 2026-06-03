@@ -8,36 +8,30 @@ Tres partes: scraping de ofertas → Supabase, builder de CV con rendercv (YAML 
 ## Estructura
 
 ```
-web/            Astro + React + Tailwind (frontend)
+web/            Astro + React + Tailwind (frontend, standalone)
   src/features/
     jobs/       listado, filtros, cards
     cv/         builder, preview (Fase 2)
     ai/         generador, match (Fase 3)
 api/            FastAPI — /cv/render, /ai/generate-cv, /ai/match
-scrapers/       Python: GetOnBoardSource, ChiletrabajosSource
-supabase/       gitignored — migraciones en repo privado tamecl/lapala-db
+scrapers/       Python: ChiletrabajosSource, ComputrabajoSource
 examples/       CVs YAML de ejemplo (formato rendercv)
 .github/
   workflows/    ingest.yml: cron cada 6h → upsert jobs en Supabase
-justfile        task runner
 ```
 
 ## Comandos clave
 
 ```bash
-just dev                        # Astro en localhost:4321
-just api                        # FastAPI en localhost:8000
-just ingest                     # todos los scrapers → Supabase
-just ingest-source getonbrd     # solo una fuente
-just test-scrapers              # smoke test rápido
-just env                        # copia .env.example → web/.env
-```
+# Frontend (desde web/)
+cd web && pnpm dev              # localhost:4321
 
-Sin `just`:
-```bash
-cd web && pnpm dev
-cd api && uvicorn main:app --reload
+# API (desde api/, con venv activo)
+cd api && source .venv/bin/activate && uvicorn main:app --reload
+
+# Scrapers
 cd scrapers && python run_ingest.py all
+cd scrapers && python run_ingest.py chiletrabajos
 ```
 
 ## Stack
@@ -46,7 +40,7 @@ cd scrapers && python run_ingest.py all
 - **Backend:** FastAPI, rendercv, anthropic SDK, supabase-py
 - **Scrapers:** httpx (async), selectolax, pydantic v2
 - **DB:** Supabase free tier — tablas: `jobs`, `profiles`, `cvs`, `matches`
-- **Infra:** GitHub Actions (ingesta), Cloudflare Pages o Netlify (web), Render free (api)
+- **Infra:** GitHub Actions (ingesta), Cloudflare Pages (web — lapala.pages.dev), Render free (api — lapala.onrender.com)
 
 ## Reglas de arquitectura
 
@@ -70,9 +64,9 @@ SUPABASE_SERVICE_KEY=
 
 ## Fases del roadmap
 
-- **F0** ✅ Scaffolding monorepo
-- **F1** Ingesta Get on Board + listado Astro (primer valor real)
-- **F2** CV builder: form → YAML → `/cv/render` → PDF
+- **F0** ✅ Scaffolding
+- **F1** ✅ Ingesta + listado (Chiletrabajos + Computrabajo, ~6k pegas)
+- **F2** ✅ CV builder: form → YAML → `/cv/render` → PDF
+- **F5** ✅ Deploy: Cloudflare Pages + Render
+- **F4** Scrapers adicionales: BNE (API pública), Greenhouse, Trabajando.com
 - **F3** IA: generar CV, match CV ↔ oferta (BYOK)
-- **F4** Scrapers adicionales: computrabajo, BNE
-- **F5** Auth Supabase, perfiles, deploy

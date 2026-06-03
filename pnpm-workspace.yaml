@@ -1,9 +1,0 @@
-packages:
-  - "web"
-allowBuilds:
-  esbuild: set this to true or false
-  sharp: set this to true or false
-minimumReleaseAgeExclude:
-  - '@types/react@19.2.16'
-  - react-dom@19.2.7
-  - react@19.2.7
