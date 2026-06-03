@@ -1,25 +1,29 @@
-"""CV render endpoint — rendercv YAML -> PDF -> Supabase Storage -> URL."""
-
+import io
 import os
+import re
 import subprocess
 import tempfile
-import uuid
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 router = APIRouter()
+
+
+def _parse_rendercv_error(output: str) -> str:
+    # Extract field-level errors from rendercv's table output
+    rows = re.findall(r"│\s+(cv\.[\w.]+)\s+│[^│]+│\s+([^│\n]+)", output)
+    if rows:
+        return " · ".join(f"{loc}: {msg.strip()}" for loc, msg in rows)
+    return "Error al generar el PDF — revisa los datos ingresados"
 
 
 class RenderRequest(BaseModel):
     yaml_content: str
 
 
-class RenderResponse(BaseModel):
-    pdf_url: str
-
-
-@router.post("/render", response_model=RenderResponse)
+@router.post("/render")
 async def render_cv(req: RenderRequest):
     with tempfile.TemporaryDirectory() as tmpdir:
         yaml_path = os.path.join(tmpdir, "cv.yaml")
@@ -34,25 +38,24 @@ async def render_cv(req: RenderRequest):
         )
 
         if result.returncode != 0:
-            raise HTTPException(status_code=422, detail=result.stderr[:500])
+            raise HTTPException(status_code=422, detail=_parse_rendercv_error(result.stdout + result.stderr))
 
-        # Find the generated PDF
-        pdf_path = next(
-            (os.path.join(tmpdir, f) for f in os.listdir(tmpdir) if f.endswith(".pdf")),
-            None,
-        )
+        pdf_path = None
+        for root, _, files in os.walk(tmpdir):
+            for fname in files:
+                if fname.endswith(".pdf"):
+                    pdf_path = os.path.join(root, fname)
+                    break
+            if pdf_path:
+                break
+
         if not pdf_path:
             raise HTTPException(status_code=500, detail="PDF not generated")
 
-        # Upload to Supabase Storage
-        from supabase import create_client
-        client = create_client(
-            os.environ["SUPABASE_URL"],
-            os.environ["SUPABASE_SERVICE_KEY"],
-        )
-        key = f"cvs/{uuid.uuid4()}.pdf"
-        with open(pdf_path, "rb") as f:
-            client.storage.from_("cvs").upload(key, f, {"content-type": "application/pdf"})
+        content = open(pdf_path, "rb").read()
 
-        public_url = client.storage.from_("cvs").get_public_url(key)
-        return RenderResponse(pdf_url=public_url)
+    return StreamingResponse(
+        io.BytesIO(content),
+        media_type="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=cv.pdf"},
+    )

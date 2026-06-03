@@ -4,12 +4,64 @@ import JobList from "../features/jobs/JobList.tsx";
 ---
 
 <Layout title="LaPala — Encuentra tu pega en Chile">
-  <main class="max-w-5xl mx-auto px-4 py-12">
-    <header class="mb-10 text-center">
-      <h1 class="text-4xl font-bold text-neutral-900 mb-2">🪚 LaPala</h1>
-      <p class="text-neutral-500 text-lg">Encuentra tu pega en Chile — ofertas tech, actualizadas cada 6 horas</p>
-    </header>
+  <!-- Navbar -->
+  <nav class="fixed top-0 inset-x-0 z-50 border-b border-white/8 bg-[#0a0a0f]/80 backdrop-blur-sm">
+    <div class="max-w-3xl mx-auto px-4 h-13 flex items-center justify-between">
+      <span class="font-bold text-white tracking-tight text-sm">LaPala</span>
+      <a href="/cv" class="text-xs text-gray-500 hover:text-violet-400 transition-colors">Armar CV</a>
+    </div>
+  </nav>
 
+  <!-- Hero -->
+  <div class="relative overflow-hidden pt-13">
+    <!-- Dot grid bg -->
+    <div
+      class="pointer-events-none absolute inset-0 opacity-20"
+      style="background-image: radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px); background-size: 28px 28px;"
+    ></div>
+
+    <!-- Gradient blobs -->
+    <div
+      class="pointer-events-none absolute top-[-20rem] right-[-12rem] flex gap-[5rem] opacity-30"
+      style="transform: rotate(-20deg) skewX(-40deg); filter: blur(4rem);"
+    >
+      <div class="w-32 h-72 bg-gradient-to-b from-white to-blue-300"></div>
+      <div class="w-32 h-72 bg-gradient-to-b from-white to-violet-300"></div>
+      <div class="w-32 h-72 bg-gradient-to-b from-white to-blue-300"></div>
+    </div>
+    <div
+      class="pointer-events-none absolute top-[-28rem] right-[-24rem] flex gap-[5rem] opacity-20"
+      style="transform: rotate(-20deg) skewX(-40deg); filter: blur(4rem);"
+    >
+      <div class="w-32 h-96 bg-gradient-to-b from-white to-blue-300"></div>
+      <div class="w-32 h-96 bg-gradient-to-b from-white to-blue-300"></div>
+    </div>
+
+    <div class="relative z-10 max-w-3xl mx-auto px-4 pt-16 pb-10 text-center">
+      <!-- Status pill -->
+      <span
+        class="inline-flex items-center gap-2 text-xs text-gray-400 border border-white/10 rounded-full px-4 py-1.5 mb-8 bg-white/5"
+      >
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        Actualizado cada 6h · gratis · open source
+      </span>
+
+      <!-- Title -->
+      <h1 class="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-none mb-5">
+        Encuentra tu<br />
+        <span class="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
+          pega en Chile
+        </span>
+      </h1>
+
+      <p class="text-gray-500 text-base">
+        Tech, ventas, salud, construcción y más — actualizado cada 6h
+      </p>
+    </div>
+  </div>
+
+  <!-- Interactive job list (React island) -->
+  <div class="max-w-3xl mx-auto px-4 pb-24">
     <JobList client:load />
-  </main>
+  </div>
 </Layout>

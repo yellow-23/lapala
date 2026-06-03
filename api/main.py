@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import cv, ai
+from routers import cv, ai
 
 app = FastAPI(title="LaPala API", version="0.1.0")
 

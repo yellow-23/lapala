@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 from supabase import create_client
 
-from lapala_scrapers import GetOnBoardSource, ChiletrabajosSource, NormalizedJob
+from lapala_scrapers import GetOnBoardSource, ChiletrabajosSource, ComputrabajoSource, NormalizedJob
 
 load_dotenv()
 
@@ -52,6 +52,12 @@ async def run(sources: list[str]) -> None:
         print("[chiletrabajos] fetching...")
         jobs = await ChiletrabajosSource().fetch()
         print(f"[chiletrabajos] {len(jobs)} jobs")
+        all_jobs.extend(jobs)
+
+    if "computrabajo" in sources or "all" in sources:
+        print("[computrabajo] fetching...")
+        jobs = await ComputrabajoSource().fetch()
+        print(f"[computrabajo] {len(jobs)} jobs")
         all_jobs.extend(jobs)
 
     if not all_jobs:
