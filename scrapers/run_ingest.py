@@ -8,13 +8,14 @@ import asyncio
 import os
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
 
 from dotenv import load_dotenv
 from supabase import create_client
 
-from lapala_scrapers import GetOnBoardSource, ChiletrabajosSource, ComputrabajoSource, NormalizedJob
+from lapala_scrapers import GetOnBoardSource, ChiletrabajosSource, ComputrabajoSource, BNESource, GreenhouseSource, NormalizedJob
 
-load_dotenv()
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
@@ -58,6 +59,18 @@ async def run(sources: list[str]) -> None:
         print("[computrabajo] fetching...")
         jobs = await ComputrabajoSource().fetch()
         print(f"[computrabajo] {len(jobs)} jobs")
+        all_jobs.extend(jobs)
+
+    if "bne" in sources or "all" in sources:
+        print("[bne] fetching...")
+        jobs = await BNESource().fetch()
+        print(f"[bne] {len(jobs)} jobs")
+        all_jobs.extend(jobs)
+
+    if "greenhouse" in sources or "all" in sources:
+        print("[greenhouse] fetching...")
+        jobs = await GreenhouseSource().fetch()
+        print(f"[greenhouse] {len(jobs)} jobs")
         all_jobs.extend(jobs)
 
     if not all_jobs:
