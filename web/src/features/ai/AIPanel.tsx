@@ -6,7 +6,7 @@ import { AiLimitBar, AiLimitBlocked } from "./AiLimitBar";
 const API_URL = import.meta.env.PUBLIC_API_URL ?? "https://lapala.onrender.com";
 
 const iCls =
-  "bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-violet-500/50 w-full transition-colors";
+  "bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-700/50 w-full transition-colors";
 
 interface CVProfile {
   name: string;
@@ -32,9 +32,7 @@ function scoreByKeywords(job: Job, keywords: string[]): number {
   return keywords.filter((kw) => haystack.includes(kw.toLowerCase())).length;
 }
 
-function UploadTab() {
-  const analyzeLimit = useAiLimit(5);
-  const rankLimit = useAiLimit(5);
+function UploadTab({ limit }: { limit: ReturnType<typeof useAiLimit> }) {
   const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +50,7 @@ function UploadTab() {
       setError("Solo se aceptan archivos PDF o DOCX");
       return;
     }
-    if (!analyzeLimit.canUse) return;
+    if (!limit.canUse) return;
     setLoading(true);
     setError(null);
     setProfile(null);
@@ -64,13 +62,13 @@ function UploadTab() {
 
     try {
       const res = await fetch(`${API_URL}/ai/analyze-cv`, { method: "POST", body: form });
-      if (res.status === 429) { analyzeLimit.markExhausted(); throw new Error("Limite de la hora alcanzado. Intenta en unos minutos."); }
+      if (res.status === 429) { limit.markExhausted(); throw new Error("Limite de la hora alcanzado. Intenta en unos minutos."); }
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.detail ?? `Error ${res.status}`);
       }
-      analyzeLimit.decrement();
-      analyzeLimit.updateFromHeaders(res.headers);
+      limit.decrement();
+      limit.updateFromHeaders(res.headers);
       const data: CVProfile = await res.json();
       setProfile(data);
       fetchMatches(data.keywords);
@@ -112,7 +110,7 @@ function UploadTab() {
   }
 
   async function handleAiRank(prof: CVProfile) {
-    if (!rankLimit.canUse) return;
+    if (!limit.canUse) return;
     setRankLoading(true);
     try {
       const res = await fetch(`${API_URL}/ai/rank-jobs`, {
@@ -120,10 +118,10 @@ function UploadTab() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ profile: prof, jobs: jobs.slice(0, 15) }),
       });
-      if (res.status === 429) { rankLimit.markExhausted(); throw new Error("Limite de la hora alcanzado."); }
+      if (res.status === 429) { limit.markExhausted(); throw new Error("Limite de la hora alcanzado."); }
       if (!res.ok) throw new Error(`Error ${res.status}`);
-      rankLimit.decrement();
-      rankLimit.updateFromHeaders(res.headers);
+      limit.decrement();
+      limit.updateFromHeaders(res.headers);
       const data = await res.json();
       const rankMap = new Map<string, { score: number; reason: string }>(
         (data.rankings ?? []).map((r: { id: string; score: number; reason: string }) => [r.id, r])
@@ -153,19 +151,16 @@ function UploadTab() {
 
   return (
     <div className="space-y-6">
-      {/* Contador siempre visible */}
-      <AiLimitBar remaining={analyzeLimit.remaining} limit={analyzeLimit.limit} singular="intento de analisis" plural="intentos de analisis" />
-
       {/* Dropzone */}
-      {!profile && !analyzeLimit.canUse && <AiLimitBlocked />}
-      {!profile && analyzeLimit.canUse && (
+      {!profile && !limit.canUse && <AiLimitBlocked />}
+      {!profile && limit.canUse && (
         <div
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
           onClick={() => inputRef.current?.click()}
           className={`relative cursor-pointer rounded-2xl border-2 border-dashed transition-all p-12 flex flex-col items-center gap-4 text-center
-            ${dragging ? "border-violet-500 bg-violet-500/10" : "border-white/15 hover:border-violet-500/50 hover:bg-white/3"}`}
+            ${dragging ? "border-blue-700 bg-blue-700/10" : "border-white/15 hover:border-blue-700/50 hover:bg-white/3"}`}
         >
           <input
             ref={inputRef}
@@ -176,13 +171,13 @@ function UploadTab() {
           />
           {loading ? (
             <>
-              <div className="w-10 h-10 rounded-full border-2 border-violet-500 border-t-transparent animate-spin" />
+              <div className="w-10 h-10 rounded-full border-2 border-blue-700 border-t-transparent animate-spin" />
               <p className="text-sm text-gray-400">Analizando con Claude...</p>
             </>
           ) : (
             <>
-              <div className="w-12 h-12 rounded-2xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center">
-                <svg className="w-6 h-6 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <div className="w-12 h-12 rounded-2xl bg-blue-700/15 border border-blue-700/30 flex items-center justify-center">
+                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                 </svg>
               </div>
@@ -205,11 +200,11 @@ function UploadTab() {
       {/* Perfil extraido */}
       {profile && (
         <div className="space-y-6">
-          <div className="border border-violet-500/25 rounded-2xl p-5 bg-violet-500/5 space-y-4">
+          <div className="border border-blue-700/25 rounded-2xl p-5 bg-blue-700/5 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="font-semibold text-white">{profile.name}</p>
-                <p className="text-sm text-violet-300">{profile.title}</p>
+                <p className="text-sm text-blue-400">{profile.title}</p>
                 {profile.experience_years > 0 && (
                   <p className="text-xs text-gray-500 mt-0.5">{profile.experience_years} años de experiencia</p>
                 )}
@@ -237,7 +232,6 @@ function UploadTab() {
             )}
           </div>
 
-          <AiLimitBar remaining={rankLimit.remaining} limit={rankLimit.limit} singular="rankeo con IA" plural="rankeos con IA" />
 
           {/* Matches */}
           <div>
@@ -249,9 +243,9 @@ function UploadTab() {
               {jobs.length > 0 && !ranked && (
                 <button
                   onClick={() => handleAiRank(profile)}
-                  disabled={rankLoading || !rankLimit.canUse}
-                  title={!rankLimit.canUse ? "Limite de hoy alcanzado" : undefined}
-                  className="shrink-0 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium transition-colors"
+                  disabled={rankLoading || !limit.canUse}
+                  title={!limit.canUse ? "Limite de hoy alcanzado" : undefined}
+                  className="shrink-0 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-blue-800 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium transition-colors"
                 >
                   {rankLoading ? (
                     <span className="w-3 h-3 rounded-full border border-white border-t-transparent animate-spin" />
@@ -262,7 +256,7 @@ function UploadTab() {
                 </button>
               )}
               {ranked && (
-                <span className="text-xs text-violet-400 flex items-center gap-1">
+                <span className="text-xs text-blue-600 flex items-center gap-1">
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1L6.2 3.8L9 4L6.8 6.1L7.4 9L5 7.6L2.6 9L3.2 6.1L1 4L3.8 3.8L5 1Z" fill="currentColor"/></svg>
                   Rankeado por IA
                 </span>
@@ -288,6 +282,7 @@ function UploadTab() {
                     profile={profile}
                     isExpanded={expanded === job.id}
                     onToggle={() => setExpanded(expanded === job.id ? null : job.id)}
+                    limit={limit}
                   />
                 ))}
               </ul>
@@ -302,8 +297,8 @@ function UploadTab() {
 // ── Job card para matches ───────────────────────────────────────────────────
 
 const AVATAR_COLORS = [
-  "bg-violet-500/20 text-violet-300 border-violet-500/30",
-  "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
+  "bg-blue-700/20 text-blue-400 border-blue-700/30",
+  "bg-blue-700/20 text-blue-400 border-blue-700/30",
   "bg-blue-500/20 text-blue-300 border-blue-500/30",
   "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
   "bg-orange-500/20 text-orange-300 border-orange-500/30",
@@ -317,12 +312,13 @@ interface DetailResult {
 }
 
 function MatchJobCard({
-  job, profile, isExpanded, onToggle,
+  job, profile, isExpanded, onToggle, limit,
 }: {
   job: JobWithScore;
   profile: CVProfile;
   isExpanded: boolean;
   onToggle: () => void;
+  limit: ReturnType<typeof useAiLimit>;
 }) {
   const color = AVATAR_COLORS[(job.company?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length];
   const scoreColor =
@@ -330,7 +326,6 @@ function MatchJobCard({
     job.aiScore >= 8 ? "text-emerald-400" :
     job.aiScore >= 5 ? "text-yellow-400" : "text-red-400";
 
-  const matchLimit = useAiLimit(5);
   const [detail, setDetail] = useState<DetailResult | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -338,7 +333,7 @@ function MatchJobCard({
   async function fetchDetail(e: React.MouseEvent) {
     e.stopPropagation();
     if (detail) { setDetailOpen((o) => !o); return; }
-    if (!matchLimit.canUse) { setDetailOpen(true); return; }
+    if (!limit.canUse) { setDetailOpen(true); return; }
     setDetailLoading(true);
     setDetailOpen(true);
     try {
@@ -351,12 +346,12 @@ function MatchJobCard({
           job: { title: job.title, company: job.company, description: job.description },
         }),
       });
-      if (res.status === 429) { matchLimit.markExhausted(); return; }
+      if (res.status === 429) { limit.markExhausted(); return; }
       if (res.ok) {
         const d = await res.json();
         if (d.score != null) {
-          matchLimit.decrement();
-          matchLimit.updateFromHeaders(res.headers);
+          limit.decrement();
+          limit.updateFromHeaders(res.headers);
           setDetail(d);
         }
       }
@@ -374,7 +369,7 @@ function MatchJobCard({
     <li
       onClick={onToggle}
       className={`cursor-pointer list-none bg-[#13131a] border rounded-xl px-4 py-3.5 transition-colors select-none ${
-        isExpanded ? "border-violet-500/30" : "border-white/8 hover:border-white/20"
+        isExpanded ? "border-blue-700/30" : "border-white/8 hover:border-white/20"
       }`}
     >
       <div className="flex items-center gap-3">
@@ -407,7 +402,7 @@ function MatchJobCard({
             title="Ver analisis detallado"
             className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors ${
               detailOpen
-                ? "bg-violet-600/30 text-violet-300 border border-violet-500/40"
+                ? "bg-blue-800/30 text-blue-400 border border-blue-700/40"
                 : "bg-white/5 text-gray-500 hover:bg-white/10 hover:text-gray-300 border border-white/8"
             }`}
           >
@@ -426,14 +421,14 @@ function MatchJobCard({
       {detailOpen && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="mt-3 rounded-lg border border-violet-500/20 bg-violet-500/5 p-3 space-y-3"
+          className="mt-3 rounded-lg border border-blue-700/20 bg-blue-700/5 p-3 space-y-3"
         >
           {detailLoading ? (
             <div className="flex items-center gap-2 text-xs text-gray-500">
-              <span className="w-3 h-3 rounded-full border border-violet-400 border-t-transparent animate-spin" />
+              <span className="w-3 h-3 rounded-full border border-blue-600 border-t-transparent animate-spin" />
               Analizando con Claude...
             </div>
-          ) : !matchLimit.canUse && !detail ? (
+          ) : !limit.canUse && !detail ? (
             <p className="text-xs text-amber-400">Limite de analisis de hoy alcanzado. Vuelve manana.</p>
           ) : detail ? (
             <>
@@ -459,7 +454,7 @@ function MatchJobCard({
                   <ul className="space-y-1">
                     {detail.tailoring_tips.map((tip, i) => (
                       <li key={i} className="text-xs text-gray-400 flex gap-1.5">
-                        <span className="text-violet-500 shrink-0">→</span>{tip}
+                        <span className="text-blue-700 shrink-0">→</span>{tip}
                       </li>
                     ))}
                   </ul>
@@ -489,7 +484,7 @@ function MatchJobCard({
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-2 text-sm font-medium text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 px-4 py-2 rounded-lg transition-all"
+            className="inline-flex items-center gap-2 text-sm font-medium text-white bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
           >
             Ver pega
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -504,8 +499,7 @@ function MatchJobCard({
 
 // ── Generar CV tab ──────────────────────────────────────────────────────────
 
-function GenerateTab() {
-  const limit = useAiLimit(5);
+function GenerateTab({ limit }: { limit: ReturnType<typeof useAiLimit> }) {
   const [context, setContext] = useState("");
   const [generatedYaml, setGeneratedYaml] = useState("");
   const [genLoading, setGenLoading] = useState(false);
@@ -598,11 +592,10 @@ Describe tu experiencia con tus propias palabras.`}
           <button
             onClick={handleGenerate}
             disabled={genLoading || !context.trim()}
-            className="w-full py-3 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+            className="w-full py-3 rounded-lg bg-blue-800 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-colors"
           >
             {genLoading ? "Generando con Claude..." : "Generar CV con IA"}
           </button>
-          <AiLimitBar remaining={limit.remaining} limit={limit.limit} singular="generacion" plural="generaciones" />
         </>
       )}
       {generatedYaml && (
@@ -617,7 +610,7 @@ Describe tu experiencia con tus propias palabras.`}
           <button
             onClick={handleRenderPdf}
             disabled={pdfLoading}
-            className="w-full py-2.5 rounded-lg border border-violet-500/40 text-violet-300 hover:bg-violet-500/10 disabled:opacity-40 text-sm transition-colors"
+            className="w-full py-2.5 rounded-lg border border-blue-700/40 text-blue-400 hover:bg-blue-700/10 disabled:opacity-40 text-sm transition-colors"
           >
             {pdfLoading ? "Generando PDF..." : "Descargar PDF"}
           </button>
@@ -629,8 +622,7 @@ Describe tu experiencia con tus propias palabras.`}
 
 // ── Match tab ───────────────────────────────────────────────────────────────
 
-function MatchTab() {
-  const limit = useAiLimit(5);
+function MatchTab({ limit }: { limit: ReturnType<typeof useAiLimit> }) {
   const [cvYaml, setCvYaml] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [jobCompany, setJobCompany] = useState("");
@@ -698,11 +690,10 @@ function MatchTab() {
           <button
             onClick={handleMatch}
             disabled={loading || !cvYaml.trim() || !jobDesc.trim()}
-            className="w-full py-3 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+            className="w-full py-3 rounded-lg bg-blue-800 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-colors"
           >
             {loading ? "Analizando con Claude..." : "Analizar compatibilidad"}
           </button>
-          <AiLimitBar remaining={limit.remaining} limit={limit.limit} singular="analisis" plural="analisis" />
         </>
       )}
       {result && (
@@ -729,7 +720,7 @@ function MatchTab() {
               <ul className="space-y-1.5">
                 {result.tailoring_tips.map((tip, i) => (
                   <li key={i} className="text-xs text-gray-400 flex gap-2">
-                    <span className="text-violet-500 shrink-0">→</span>{tip}
+                    <span className="text-blue-700 shrink-0">→</span>{tip}
                   </li>
                 ))}
               </ul>
@@ -745,6 +736,7 @@ function MatchTab() {
 
 export default function AIPanel() {
   const [tab, setTab] = useState<Tab>("upload");
+  const sharedLimit = useAiLimit(5);
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "upload", label: "Analizar mi CV" },
@@ -753,14 +745,16 @@ export default function AIPanel() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      <AiLimitBar remaining={sharedLimit.remaining} limit={sharedLimit.limit} singular="intento de IA" plural="intentos de IA" />
+
       <div className="flex gap-1 border-b border-white/8">
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`text-xs px-4 py-2 -mb-px border-b transition-colors ${
-              tab === t.id ? "border-violet-500 text-violet-300" : "border-transparent text-gray-500 hover:text-gray-300"
+              tab === t.id ? "border-blue-700 text-blue-400" : "border-transparent text-gray-500 hover:text-gray-300"
             }`}
           >
             {t.label}
@@ -768,9 +762,9 @@ export default function AIPanel() {
         ))}
       </div>
 
-      {tab === "upload" && <UploadTab />}
-      {tab === "generate" && <GenerateTab />}
-      {tab === "match" && <MatchTab />}
+      {tab === "upload" && <UploadTab limit={sharedLimit} />}
+      {tab === "generate" && <GenerateTab limit={sharedLimit} />}
+      {tab === "match" && <MatchTab limit={sharedLimit} />}
     </div>
   );
 }

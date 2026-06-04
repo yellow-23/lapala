@@ -45,12 +45,12 @@ export function AiLimitBar({
             <span key={i} className="relative flex items-center justify-center w-3 h-3">
               {isJustEmptied && (
                 <span
-                  className="absolute inset-0 rounded-full bg-violet-400 opacity-0"
+                  className="absolute inset-0 rounded-full bg-blue-600 opacity-0"
                   style={{ animation: "ripple 0.6s ease-out forwards" }}
                 />
               )}
               <span
-                className={`block rounded-full ${filled ? "w-2.5 h-2.5 bg-violet-500" : "w-2 h-2 bg-white/12"}`}
+                className={`block rounded-full ${filled ? "w-2.5 h-2.5 bg-blue-700" : "w-2 h-2 bg-white/12"}`}
                 style={{
                   transition: "transform 0.2s ease, box-shadow 0.3s ease, background-color 0.4s ease, width 0.2s ease, height 0.2s ease",
                   transform: isJustEmptied ? "scale(0.4)" : "scale(1)",
@@ -89,7 +89,7 @@ export function AiLimitBar({
 export function AiLimitBlocked() {
   return (
     <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-5 text-center space-y-1">
-      <p className="text-sm text-amber-300 font-medium">Usaste tus 5 intentos de hoy</p>
+      <p className="text-sm text-amber-300 font-medium">Usaste todos tus intentos de IA de hoy</p>
       <p className="text-xs text-gray-500">
         Vuelve manana — el limite se resetea a medianoche.
       </p>

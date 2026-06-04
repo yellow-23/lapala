@@ -13,7 +13,7 @@ const API_URL = import.meta.env.PUBLIC_API_URL ?? "";
 const STEPS = ["Personal", "Perfil", "Experiencia", "Educación", "Habilidades", "Descargar"];
 
 const iCls =
-  "bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-violet-500/50 w-full transition-colors";
+  "bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-700/50 w-full transition-colors";
 
 function Field({
   label,
@@ -28,7 +28,7 @@ function Field({
     <label className="block">
       <span className="text-xs text-gray-400 mb-1.5 block">
         {label}
-        {required && <span className="text-violet-400/70 ml-0.5">*</span>}
+        {required && <span className="text-blue-600/70 ml-0.5">*</span>}
       </span>
       {children}
     </label>
@@ -274,7 +274,7 @@ export default function CVBuilder() {
             <Field label="Término">
               {exp.endDate === "present" ? (
                 <div className="flex items-center gap-2 h-9 mt-0.5">
-                  <span className="text-xs text-violet-400">Actualmente aquí</span>
+                  <span className="text-xs text-blue-600">Actualmente aquí</span>
                   <button
                     onClick={() => updateExp(exp.id, { endDate: "" })}
                     className="text-xs text-gray-600 hover:text-gray-300 transition-colors"
@@ -292,7 +292,7 @@ export default function CVBuilder() {
                   />
                   <button
                     onClick={() => updateExp(exp.id, { endDate: "present" })}
-                    className="text-xs text-gray-600 hover:text-violet-400 transition-colors whitespace-nowrap"
+                    className="text-xs text-gray-600 hover:text-blue-600 transition-colors whitespace-nowrap"
                   >
                     actual
                   </button>
@@ -313,7 +313,7 @@ export default function CVBuilder() {
       ))}
       <button
         onClick={() => setExperiences((es) => [...es, newExp()])}
-        className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+        className="text-xs text-blue-600 hover:text-blue-400 transition-colors"
       >
         + Agregar experiencia
       </button>
@@ -381,7 +381,7 @@ export default function CVBuilder() {
             <Field label="Término">
               {edu.endDate === "present" ? (
                 <div className="flex items-center gap-2 h-9 mt-0.5">
-                  <span className="text-xs text-violet-400">Cursando</span>
+                  <span className="text-xs text-blue-600">Cursando</span>
                   <button
                     onClick={() => updateEdu(edu.id, { endDate: "" })}
                     className="text-xs text-gray-600 hover:text-gray-300 transition-colors"
@@ -399,7 +399,7 @@ export default function CVBuilder() {
                   />
                   <button
                     onClick={() => updateEdu(edu.id, { endDate: "present" })}
-                    className="text-xs text-gray-600 hover:text-violet-400 transition-colors whitespace-nowrap"
+                    className="text-xs text-gray-600 hover:text-blue-600 transition-colors whitespace-nowrap"
                   >
                     cursando
                   </button>
@@ -411,7 +411,7 @@ export default function CVBuilder() {
       ))}
       <button
         onClick={() => setEducations((es) => [...es, newEdu()])}
-        className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+        className="text-xs text-blue-600 hover:text-blue-400 transition-colors"
       >
         + Agregar educación
       </button>
@@ -450,7 +450,7 @@ export default function CVBuilder() {
         ))}
         <button
           onClick={() => setSkills((ss) => [...ss, newSkill()])}
-          className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+          className="text-xs text-blue-600 hover:text-blue-400 transition-colors"
         >
           + Agregar habilidad
         </button>
@@ -487,7 +487,7 @@ export default function CVBuilder() {
         ))}
         <button
           onClick={() => setLanguages((ls) => [...ls, newLang()])}
-          className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+          className="text-xs text-blue-600 hover:text-blue-400 transition-colors"
         >
           + Agregar idioma
         </button>
@@ -517,7 +517,7 @@ export default function CVBuilder() {
       <button
         onClick={handleGenerate}
         disabled={loading || !personal.name || !personal.email}
-        className="w-full py-3 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+        className="w-full py-3 rounded-lg bg-blue-800 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-colors"
       >
         {loading ? "Generando PDF..." : "Descargar PDF"}
       </button>
@@ -536,7 +536,7 @@ export default function CVBuilder() {
           <Fragment key={s}>
             {i > 0 && (
               <div
-                className={`flex-1 h-px mt-3.5 mx-1 transition-colors ${i <= step ? "bg-violet-600/40" : "bg-white/8"}`}
+                className={`flex-1 h-px mt-3.5 mx-1 transition-colors ${i <= step ? "bg-blue-800/40" : "bg-white/8"}`}
               />
             )}
             <div className="flex flex-col items-center gap-1.5">
@@ -544,16 +544,16 @@ export default function CVBuilder() {
                 onClick={() => i < step && setStep(i)}
                 className={`w-7 h-7 rounded-full text-xs flex items-center justify-center transition-colors ${
                   i === step
-                    ? "bg-violet-600 text-white"
+                    ? "bg-blue-800 text-white"
                     : i < step
-                      ? "bg-violet-600/30 text-violet-400 cursor-pointer hover:bg-violet-600/50"
+                      ? "bg-blue-800/30 text-blue-600 cursor-pointer hover:bg-blue-800/50"
                       : "bg-white/8 text-gray-600 cursor-default"
                 }`}
               >
                 {i + 1}
               </button>
               <span
-                className={`text-[10px] hidden sm:block transition-colors ${i === step ? "text-violet-300" : "text-gray-600"}`}
+                className={`text-[10px] hidden sm:block transition-colors ${i === step ? "text-blue-400" : "text-gray-600"}`}
               >
                 {s}
               </span>
@@ -578,7 +578,7 @@ export default function CVBuilder() {
           <button
             onClick={() => setStep((s) => s + 1)}
             disabled={step === 0 && !personal.name}
-            className="text-sm text-violet-400 hover:text-violet-300 disabled:opacity-40 transition-colors"
+            className="text-sm text-blue-600 hover:text-blue-400 disabled:opacity-40 transition-colors"
           >
             Siguiente →
           </button>
