@@ -68,6 +68,7 @@ export default function CVBuilder() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showGithub, setShowGithub] = useState(false);
 
   const [personal, setPersonal] = useState({
     name: "",
@@ -195,14 +196,35 @@ export default function CVBuilder() {
             placeholder="juan-perez"
           />
         </Field>
-        <Field label="GitHub (solo el usuario)">
-          <input
-            className={iCls}
-            value={personal.github}
-            onChange={(e) => setPersonal({ ...personal, github: e.target.value })}
-            placeholder="juanperez"
-          />
-        </Field>
+        <div className="block">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-xs text-gray-400">GitHub</span>
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="checkbox"
+                className="w-3 h-3 accent-blue-600"
+                checked={showGithub}
+                onChange={(e) => {
+                  setShowGithub(e.target.checked);
+                  if (!e.target.checked) setPersonal({ ...personal, github: "" });
+                }}
+              />
+              <span className="text-xs text-gray-600">tengo GitHub</span>
+            </label>
+          </div>
+          {showGithub ? (
+            <input
+              className={iCls}
+              value={personal.github}
+              onChange={(e) => setPersonal({ ...personal, github: e.target.value })}
+              placeholder="juanperez"
+            />
+          ) : (
+            <div className="text-xs text-gray-600 h-9 flex items-center px-3 border border-white/5 rounded-lg bg-white/2">
+              solo para desarrolladores
+            </div>
+          )}
+        </div>
       </div>
     </div>,
 
