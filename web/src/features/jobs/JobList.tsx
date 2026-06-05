@@ -5,8 +5,29 @@ import { motion, AnimatePresence } from "motion/react";
 import { getSupabase, type Job } from "../../lib/supabase";
 
 const CITIES = [
-  "Santiago", "Antofagasta", "Valparaíso", "Concepción",
-  "Iquique", "Calama", "Puerto montt", "La serena", "Temuco", "Rancagua",
+  { label: "Santiago", query: "Santiago" },
+  { label: "R. Metropolitana", query: "Metropolitana" },
+  { label: "Valparaíso", query: "Valparaíso" },
+  { label: "Viña del Mar", query: "Viña del Mar" },
+  { label: "Antofagasta", query: "Antofagasta" },
+  { label: "Calama", query: "Calama" },
+  { label: "Concepción", query: "Concepción" },
+  { label: "Iquique", query: "Iquique" },
+  { label: "La Serena", query: "La Serena" },
+  { label: "Coquimbo", query: "Coquimbo" },
+  { label: "Puerto Montt", query: "Puerto Montt" },
+  { label: "Rancagua", query: "Rancagua" },
+  { label: "Temuco", query: "Temuco" },
+  { label: "Copiapó", query: "Copiapó" },
+  { label: "Talca", query: "Talca" },
+  { label: "Arica", query: "Arica" },
+  { label: "Valdivia", query: "Valdivia" },
+  { label: "Chillán", query: "Chillán" },
+  { label: "Curicó", query: "Curicó" },
+  { label: "Osorno", query: "Osorno" },
+  { label: "Punta Arenas", query: "Punta Arenas" },
+  { label: "Quillota", query: "Quillota" },
+  { label: "Los Ángeles", query: "Los Ángeles" },
 ];
 
 const CATEGORIES = [
@@ -24,7 +45,16 @@ const SOURCE_LABEL: Record<string, string> = {
   getonbrd: "Get on Board",
   chiletrabajos: "ChileTrabajos",
   computrabajo: "Computrabajo",
+  bne: "BNE",
 };
+
+const SOURCES = Object.entries(SOURCE_LABEL).map(([id, label]) => ({ id, label }));
+
+const RECENCY = [
+  { label: "Hoy", days: 1 },
+  { label: "Esta semana", days: 7 },
+  { label: "Este mes", days: 30 },
+];
 
 const AVATAR_COLORS = [
   "bg-blue-700/20 text-blue-400 border-blue-700/30",
@@ -62,6 +92,7 @@ function interleaveBySource(jobs: Job[]): Job[] {
 }
 
 type Category = typeof CATEGORIES[0];
+type City = typeof CITIES[0];
 
 const X_ICON = (
   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -73,8 +104,10 @@ export default function JobList() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<Category | null>(null);
-  const [city, setCity] = useState<string | null>(null);
+  const [city, setCity] = useState<City | null>(null);
   const [remote, setRemote] = useState(false);
+  const [recency, setRecency] = useState<number | null>(null); // days
+  const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [page, setPage] = useState(0);
@@ -96,25 +129,31 @@ export default function JobList() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [catDropOpen, cityDropOpen]);
 
-  const hasFilters = search.length >= 2 || !!category || !!city || remote;
-  const filterCount = [!!category, !!city, remote].filter(Boolean).length;
-  const clearAll = () => { setSearch(""); setCategory(null); setCity(null); setRemote(false); };
+  const hasFilters = search.length >= 2 || !!category || !!city || remote || !!recency || selectedSources.length > 0;
+  const filterCount = [remote, !!recency, selectedSources.length > 0].filter(Boolean).length;
+  const clearAll = () => { setSearch(""); setCategory(null); setCity(null); setRemote(false); setRecency(null); setSelectedSources([]); };
 
-  useEffect(() => { setPage(0); setExpanded(null); }, [search, category, city, remote]);
+  useEffect(() => { setPage(0); setExpanded(null); }, [search, category, city, remote, recency, selectedSources]);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
       const supabase = getSupabase();
-      const SOURCES = ["bne", "chiletrabajos", "computrabajo", "getonbrd"];
-      const perSource = Math.ceil(PAGE_SIZE / SOURCES.length);
+      const ALL_SOURCES = ["bne", "chiletrabajos", "computrabajo", "getonbrd"];
+      const activeSources = selectedSources.length > 0 ? selectedSources : ALL_SOURCES;
+      const perSource = Math.ceil(PAGE_SIZE / activeSources.length);
       const SELECT = "id,source,title,company,location,remote,url,description,tags,salary,posted_at,fetched_at";
 
       function applyFilters(q: ReturnType<typeof supabase.from>) {
         if (remote) q = (q as any).eq("remote", true);
-        if (city) q = (q as any).ilike("location", `%${city}%`);
+        if (city) q = (q as any).ilike("location", `%${city.query}%`);
         if (search.length >= 2) q = (q as any).or(`title.ilike.%${search}%,description.ilike.%${search}%,company.ilike.%${search}%`);
         if (category) q = (q as any).or(`title.ilike.%${category.query}%,description.ilike.%${category.query}%`);
+        if (recency) {
+          const since = new Date(Date.now() - recency * 86400000).toISOString();
+          q = (q as any).gte("fetched_at", since);
+        }
+        if (selectedSources.length > 0) q = (q as any).in("source", selectedSources);
         return q;
       }
 
@@ -132,7 +171,7 @@ export default function JobList() {
         }
       } else {
         const results = await Promise.all(
-          SOURCES.map((src) =>
+          activeSources.map((src) =>
             supabase
               .from("jobs")
               .select(SELECT, { count: "exact" })
@@ -147,7 +186,7 @@ export default function JobList() {
       setLoading(false);
     }
     load();
-  }, [search, category, city, remote, page]);
+  }, [search, category, city, remote, recency, selectedSources, page]);
 
   const CHEVRON = (open: boolean) => (
     <motion.svg animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}
@@ -164,7 +203,7 @@ export default function JobList() {
 
   return (
     <div>
-      {/* Barra principal tipo Portal Inmobiliario */}
+      {/* Barra principal */}
       <div className="flex items-stretch bg-[#13131a] border border-white/10 rounded-2xl mb-3 overflow-visible">
 
         {/* Tipo de pega */}
@@ -215,13 +254,13 @@ export default function JobList() {
               city ? "text-white" : cityDropOpen ? "text-gray-300" : "text-gray-500 hover:text-gray-300"
             }`}
           >
-            <span className="flex-1 text-left truncate">{city ?? "Ciudad"}</span>
+            <span className="flex-1 text-left truncate">{city?.label ?? "Ciudad"}</span>
             {CHEVRON(cityDropOpen)}
           </button>
           <AnimatePresence>
             {cityDropOpen && (
               <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.14 }}
-                className="absolute left-0 top-full mt-2 z-30 bg-[#1a1a24] border border-white/12 rounded-2xl py-2 shadow-2xl shadow-black/60 w-52"
+                className="absolute left-0 top-full mt-2 z-30 bg-[#1a1a24] border border-white/12 rounded-2xl py-2 shadow-2xl shadow-black/60 w-52 max-h-80 overflow-y-auto"
               >
                 {city && (
                   <button onClick={() => { setCity(null); setCityDropOpen(false); }}
@@ -230,14 +269,14 @@ export default function JobList() {
                   </button>
                 )}
                 {CITIES.map(c => (
-                  <button key={c}
-                    onClick={() => { setCity(city === c ? null : c); setCityDropOpen(false); }}
+                  <button key={c.label}
+                    onClick={() => { setCity(city?.label === c.label ? null : c); setCityDropOpen(false); }}
                     className={`w-full flex items-center justify-between text-sm px-4 py-2.5 transition-colors cursor-pointer ${
-                      city === c ? "text-white bg-white/10" : "text-gray-400 hover:bg-white/5 hover:text-white"
+                      city?.label === c.label ? "text-white bg-white/10" : "text-gray-400 hover:bg-white/5 hover:text-white"
                     }`}
                   >
-                    {c}
-                    {city === c && CHECK}
+                    {c.label}
+                    {city?.label === c.label && CHECK}
                   </button>
                 ))}
               </motion.div>
@@ -312,7 +351,7 @@ export default function JobList() {
             <motion.span key="cy" initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.85 }} transition={{ duration: 0.15 }}
               className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-white/10 border border-white/20 text-white"
             >
-              {city}
+              {city.label}
               <button onClick={() => setCity(null)} aria-label="Quitar ciudad" className="hover:text-white transition-colors cursor-pointer">{X_ICON}</button>
             </motion.span>
           )}
@@ -324,6 +363,22 @@ export default function JobList() {
               <button onClick={() => setRemote(false)} aria-label="Quitar remoto" className="hover:text-white transition-colors cursor-pointer">{X_ICON}</button>
             </motion.span>
           )}
+          {recency && (
+            <motion.span key="crc" initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.85 }} transition={{ duration: 0.15 }}
+              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-white/10 border border-white/20 text-white"
+            >
+              {RECENCY.find(r => r.days === recency)?.label}
+              <button onClick={() => setRecency(null)} aria-label="Quitar recencia" className="hover:text-white transition-colors cursor-pointer">{X_ICON}</button>
+            </motion.span>
+          )}
+          {selectedSources.map(src => (
+            <motion.span key={`src-${src}`} initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.85 }} transition={{ duration: 0.15 }}
+              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-white/10 border border-white/20 text-white"
+            >
+              {SOURCE_LABEL[src] ?? src}
+              <button onClick={() => setSelectedSources(ss => ss.filter(s => s !== src))} aria-label="Quitar fuente" className="hover:text-white transition-colors cursor-pointer">{X_ICON}</button>
+            </motion.span>
+          ))}
         </AnimatePresence>
         {hasFilters && (
           <button onClick={clearAll} className="text-xs text-gray-700 hover:text-gray-500 transition-colors cursor-pointer">
@@ -370,40 +425,6 @@ export default function JobList() {
 
               <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
                 <div>
-                  <p className="text-white font-medium text-sm mb-2.5">Tipo de pega</p>
-                  <div className="space-y-0.5">
-                    {CATEGORIES.map(c => (
-                      <button key={c.label}
-                        onClick={() => setCategory(category?.label === c.label ? null : c)}
-                        className={`w-full flex items-center justify-between text-sm px-3 py-2.5 rounded-xl transition-colors cursor-pointer ${
-                          category?.label === c.label ? "bg-white/8 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"
-                        }`}
-                      >
-                        {c.label}
-                        {category?.label === c.label && CHECK}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="border-t border-white/8 pt-6">
-                  <p className="text-white font-medium text-sm mb-2.5">Ciudad</p>
-                  <div className="space-y-0.5">
-                    {CITIES.map(c => (
-                      <button key={c}
-                        onClick={() => setCity(city === c ? null : c)}
-                        className={`w-full flex items-center justify-between text-sm px-3 py-2.5 rounded-xl transition-colors cursor-pointer ${
-                          city === c ? "bg-white/8 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"
-                        }`}
-                      >
-                        {c}
-                        {city === c && CHECK}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="border-t border-white/8 pt-6">
                   <p className="text-white font-medium text-sm mb-2.5">Modalidad</p>
                   <button
                     onClick={() => setRemote(!remote)}
@@ -414,6 +435,43 @@ export default function JobList() {
                     Solo remoto
                     {remote && CHECK}
                   </button>
+                </div>
+
+                <div className="border-t border-white/8 pt-6">
+                  <p className="text-white font-medium text-sm mb-2.5">Publicado</p>
+                  <div className="space-y-0.5">
+                    {RECENCY.map(r => (
+                      <button key={r.days}
+                        onClick={() => setRecency(recency === r.days ? null : r.days)}
+                        className={`w-full flex items-center justify-between text-sm px-3 py-2.5 rounded-xl transition-colors cursor-pointer ${
+                          recency === r.days ? "bg-white/8 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        {r.label}
+                        {recency === r.days && CHECK}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border-t border-white/8 pt-6">
+                  <p className="text-white font-medium text-sm mb-2.5">Fuente</p>
+                  <div className="space-y-0.5">
+                    {SOURCES.map(s => {
+                      const active = selectedSources.includes(s.id);
+                      return (
+                        <button key={s.id}
+                          onClick={() => setSelectedSources(ss => active ? ss.filter(x => x !== s.id) : [...ss, s.id])}
+                          className={`w-full flex items-center justify-between text-sm px-3 py-2.5 rounded-xl transition-colors cursor-pointer ${
+                            active ? "bg-white/8 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"
+                          }`}
+                        >
+                          {s.label}
+                          {active && CHECK}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
