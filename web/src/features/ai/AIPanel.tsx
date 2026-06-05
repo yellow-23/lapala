@@ -736,7 +736,7 @@ function MatchTab({ limit }: { limit: ReturnType<typeof useAiLimit> }) {
 
 export default function AIPanel() {
   const [tab, setTab] = useState<Tab>("upload");
-  const sharedLimit = useAiLimit(5);
+  const sharedLimit = useAiLimit(3);
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "upload", label: "Analizar mi CV" },
