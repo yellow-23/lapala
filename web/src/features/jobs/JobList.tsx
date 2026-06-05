@@ -499,6 +499,20 @@ export default function JobList() {
   );
 }
 
+function relativeDate(dateStr: string | null): string | null {
+  if (!dateStr) return null;
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (diff < 3600) return "hace menos de 1 hora";
+  if (diff < 86400) return `hace ${Math.floor(diff / 3600)}h`;
+  const days = Math.floor(diff / 86400);
+  if (days === 1) return "hace 1 día";
+  if (days < 7) return `hace ${days} días`;
+  const weeks = Math.floor(days / 7);
+  if (weeks === 1) return "hace 1 semana";
+  if (weeks < 5) return `hace ${weeks} semanas`;
+  return `hace ${Math.floor(days / 30)} meses`;
+}
+
 function JobCard({
   job,
   isExpanded,
@@ -539,14 +553,9 @@ function JobCard({
                 Remoto
               </span>
             )}
-            {job.tags.slice(0, 3).map((t) => (
-              <span
-                key={t}
-                className="text-xs text-gray-600 bg-white/5 rounded-full px-2 py-0.5"
-              >
-                {t}
-              </span>
-            ))}
+            {job.salary && (
+              <span className="text-xs text-emerald-400/70">{job.salary}</span>
+            )}
           </div>
         </div>
 
@@ -582,24 +591,36 @@ function JobCard({
             transition={{ duration: 0.22, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="mt-4 pt-4 border-t border-white/8">
+            <div className="mt-4 pt-4 border-t border-white/8 space-y-4">
+              {/* Meta: fuente + fecha */}
+              <div className="flex items-center gap-3 text-xs text-gray-600">
+                <span>{SOURCE_LABEL[job.source] ?? job.source}</span>
+                {relativeDate(job.posted_at ?? job.fetched_at) && (
+                  <>
+                    <span>·</span>
+                    <span>{relativeDate(job.posted_at ?? job.fetched_at)}</span>
+                  </>
+                )}
+                {job.salary && (
+                  <>
+                    <span>·</span>
+                    <span className="text-emerald-400/80">{job.salary}</span>
+                  </>
+                )}
+              </div>
+
+              {/* Descripción completa */}
               {job.description && (
-                <p className="text-sm text-gray-400 leading-relaxed line-clamp-4 mb-4">
+                <p className="text-sm text-gray-400 leading-relaxed whitespace-pre-line">
                   {job.description}
                 </p>
               )}
 
-              {job.salary && (
-                <p className="text-sm text-gray-400 mb-3">{job.salary}</p>
-              )}
-
-              {job.tags.length > 3 && (
-                <div className="flex flex-wrap gap-1.5 mb-4">
-                  {job.tags.slice(3).map((t) => (
-                    <span
-                      key={t}
-                      className="text-xs text-gray-600 bg-white/5 rounded-full px-2 py-0.5"
-                    >
+              {/* Todos los tags */}
+              {job.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {job.tags.map((t) => (
+                    <span key={t} className="text-xs text-gray-600 bg-white/5 rounded-full px-2 py-0.5">
                       {t}
                     </span>
                   ))}
@@ -613,19 +634,9 @@ function JobCard({
                 onClick={(e) => e.stopPropagation()}
                 className="inline-flex items-center gap-2 text-sm font-medium text-white bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
               >
-                Ver pega
-                <svg
-                  className="w-3 h-3"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"
-                  />
+                Postular en {SOURCE_LABEL[job.source] ?? job.source}
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
                 </svg>
               </a>
             </div>
