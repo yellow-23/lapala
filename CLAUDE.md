@@ -3,7 +3,7 @@
 ## Qué es este proyecto
 
 Agregador de empleos chilenos + constructor de CV con IA. Open source, sin fines de lucro, todo gratis.
-Tres partes: scraping de ofertas → Supabase, builder de CV con rendercv (YAML → PDF), matching CV ↔ oferta con Claude (BYOK).
+Tres partes: scraping de ofertas → Supabase, builder de CV con rendercv (YAML → PDF), matching CV ↔ oferta con Claude.
 
 ## Estructura
 
@@ -46,7 +46,7 @@ cd scrapers && python run_ingest.py chiletrabajos
 
 - **No LinkedIn.** Riesgo legal confirmado (Proxycurl cerrado jul-2026). Solo export oficial del usuario.
 - **Scrapers aislados.** Cada fuente implementa `async def fetch() -> list[NormalizedJob]`. Un scraper roto no rompe los demás.
-- **BYOK para IA.** El usuario provee su `ANTHROPIC_API_KEY`. El proyecto no paga tokens.
+- **IA:** Key del proyecto durante fase de prueba (para que la gente la conozca sin fricción). Plan definitivo: BYOK — el usuario provee su `ANTHROPIC_API_KEY`.
 - **Supabase client lazy** en el frontend: usar `getSupabase()` de `web/src/lib/supabase.ts`, nunca instanciar en el módulo (rompe build estático de Astro).
 - **RLS activo.** `jobs` lectura pública. `cvs`, `profiles`, `matches` solo el dueño via `auth.uid()`.
 
@@ -69,4 +69,4 @@ SUPABASE_SERVICE_KEY=
 - **F2** ✅ CV builder: form → YAML → `/cv/render` → PDF
 - **F5** ✅ Deploy: Cloudflare Pages + Render
 - **F4** Scrapers adicionales: BNE (API pública), Greenhouse, Trabajando.com
-- **F3** IA: generar CV, match CV ↔ oferta (BYOK)
+- **F3** IA: generar CV, match CV ↔ oferta (key del proyecto en pruebas → BYOK en producción)
