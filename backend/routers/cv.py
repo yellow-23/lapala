@@ -4,11 +4,16 @@ import re
 import subprocess
 import tempfile
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
+
+MAX_YAML_BYTES = 50_000  # 50 KB
 
 
 def _parse_rendercv_error(output: str) -> str:
@@ -24,7 +29,11 @@ class RenderRequest(BaseModel):
 
 
 @router.post("/render")
-async def render_cv(req: RenderRequest):
+@limiter.limit("10/day")
+async def render_cv(request: Request, req: RenderRequest):
+    if len(req.yaml_content.encode()) > MAX_YAML_BYTES:
+        raise HTTPException(status_code=400, detail="YAML demasiado grande (max 50KB)")
+
     with tempfile.TemporaryDirectory() as tmpdir:
         yaml_path = os.path.join(tmpdir, "cv.yaml")
         with open(yaml_path, "w", encoding="utf-8") as f:
@@ -38,7 +47,10 @@ async def render_cv(req: RenderRequest):
         )
 
         if result.returncode != 0:
-            raise HTTPException(status_code=422, detail=_parse_rendercv_error(result.stdout + result.stderr))
+            raise HTTPException(
+                status_code=422,
+                detail=_parse_rendercv_error(result.stdout + result.stderr),
+            )
 
         pdf_path = None
         for root, _, files in os.walk(tmpdir):

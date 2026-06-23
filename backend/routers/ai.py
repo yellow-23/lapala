@@ -52,6 +52,7 @@ def get_client() -> anthropic.Anthropic:
 def _extract_docx_text(data: bytes) -> str:
     import io
     from docx import Document
+
     doc = Document(io.BytesIO(data))
     return "\n".join(p.text for p in doc.paragraphs if p.text.strip())
 
@@ -72,7 +73,9 @@ async def analyze_cv(request: Request, file: UploadFile = File(...)):
 
     data = await file.read()
     if len(data) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="Archivo demasiado grande (max 10MB)")
+        raise HTTPException(
+            status_code=400, detail="Archivo demasiado grande (max 10MB)"
+        )
 
     client = get_client()
 
@@ -81,15 +84,23 @@ async def analyze_cv(request: Request, file: UploadFile = File(...)):
         user_content = [
             {
                 "type": "document",
-                "source": {"type": "base64", "media_type": "application/pdf", "data": pdf_b64},
+                "source": {
+                    "type": "base64",
+                    "media_type": "application/pdf",
+                    "data": pdf_b64,
+                },
             },
             {"type": "text", "text": "Analiza este CV y devuelve el JSON solicitado."},
         ]
     else:
         text = _extract_docx_text(data)
         if not text.strip():
-            raise HTTPException(status_code=400, detail="No se pudo extraer texto del DOCX")
-        user_content = f"Analiza este CV y devuelve el JSON solicitado:\n\n{text[:6000]}"
+            raise HTTPException(
+                status_code=400, detail="No se pudo extraer texto del DOCX"
+            )
+        user_content = (
+            f"Analiza este CV y devuelve el JSON solicitado:\n\n{text[:6000]}"
+        )
 
     msg = client.messages.create(
         model="claude-sonnet-4-6",
@@ -121,7 +132,9 @@ async def generate_cv(request: Request, data: dict):
         model="claude-sonnet-4-6",
         max_tokens=4096,
         system=SYSTEM_GENERATE_CV,
-        messages=[{"role": "user", "content": f"Genera un CV para esta persona:\n\n{context}"}],
+        messages=[
+            {"role": "user", "content": f"Genera un CV para esta persona:\n\n{context}"}
+        ],
     )
     yaml = msg.content[0].text.strip()
     if yaml.startswith("```"):
@@ -141,18 +154,18 @@ async def rank_jobs(request: Request, data: dict):
     client = get_client()
 
     jobs_text = "\n\n".join(
-        f"ID:{j['id']}\nCargo: {j.get('title','')}\nEmpresa: {j.get('company','')}\n"
+        f"ID:{j['id']}\nCargo: {j.get('title', '')}\nEmpresa: {j.get('company', '')}\n"
         f"Descripcion: {(j.get('description') or '')[:400]}\nTags: {', '.join(j.get('tags', []))}"
         for j in jobs[:15]
     )
 
     prompt = f"""Perfil del candidato:
-Nombre: {profile.get('name')}
-Cargo: {profile.get('title')}
-Resumen: {profile.get('summary')}
-Skills: {', '.join(profile.get('skills', []))}
-Keywords: {', '.join(profile.get('keywords', []))}
-Anos de experiencia: {profile.get('experience_years')}
+Nombre: {profile.get("name")}
+Cargo: {profile.get("title")}
+Resumen: {profile.get("summary")}
+Skills: {", ".join(profile.get("skills", []))}
+Keywords: {", ".join(profile.get("keywords", []))}
+Anos de experiencia: {profile.get("experience_years")}
 
 Ofertas de trabajo:
 {jobs_text}
@@ -176,7 +189,7 @@ Sé honesto. Considera rubro, experiencia y habilidades reales. Score 1-10."""
         return {"rankings": json.loads(raw)}
     except Exception as e:
         logger.error("rank-jobs: json invalido de Claude (%s):\n%s", e, raw)
-        raise HTTPException(status_code=500, detail=f"JSON invalido de Claude: {raw[:200]}")
+        raise HTTPException(status_code=500, detail="Error procesando respuesta de IA")
 
 
 @router.post("/match")
