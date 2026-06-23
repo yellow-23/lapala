@@ -204,128 +204,171 @@ export default function JobList() {
   return (
     <div>
       {/* Barra principal */}
-      <div className="flex items-stretch bg-[#13131a] border border-white/10 rounded-2xl mb-3 overflow-visible">
+      <div className="bg-[#13131a] border border-white/10 rounded-2xl mb-3 overflow-visible">
 
-        {/* Tipo de pega */}
-        <div ref={catRef} className="relative">
-          <button
-            onClick={() => { setCatDropOpen(v => !v); setCityDropOpen(false); }}
-            className={`flex items-center gap-2 px-4 py-3.5 text-sm transition-colors cursor-pointer w-[152px] ${
-              category ? "text-white" : catDropOpen ? "text-gray-300" : "text-gray-500 hover:text-gray-300"
-            }`}
-          >
-            <span className="flex-1 text-left truncate">{category?.label ?? "Tipo de pega"}</span>
-            {CHEVRON(catDropOpen)}
-          </button>
-          <AnimatePresence>
-            {catDropOpen && (
-              <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.14 }}
-                className="absolute left-0 top-full mt-2 z-30 bg-[#1a1a24] border border-white/12 rounded-2xl py-2 shadow-2xl shadow-black/60 w-52"
-              >
-                {category && (
-                  <button onClick={() => { setCategory(null); setCatDropOpen(false); }}
-                    className="w-full text-left text-xs px-4 py-2 text-gray-600 hover:text-gray-400 transition-colors cursor-pointer">
-                    Cualquier tipo
-                  </button>
-                )}
-                {CATEGORIES.map(c => (
-                  <button key={c.label}
-                    onClick={() => { setCategory(category?.label === c.label ? null : c); setCatDropOpen(false); }}
-                    className={`w-full flex items-center justify-between text-sm px-4 py-2.5 transition-colors cursor-pointer ${
-                      category?.label === c.label ? "text-white bg-white/10" : "text-gray-400 hover:bg-white/5 hover:text-white"
-                    }`}
-                  >
-                    {c.label}
-                    {category?.label === c.label && CHECK}
-                  </button>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        {/* Fila superior: dropdowns (visible en todos los tamaños) */}
+        <div className="flex items-stretch">
 
-        <div className="w-px bg-white/8 my-3" />
-
-        {/* Ciudad */}
-        <div ref={cityRef} className="relative">
-          <button
-            onClick={() => { setCityDropOpen(v => !v); setCatDropOpen(false); }}
-            className={`flex items-center gap-2 px-4 py-3.5 text-sm transition-colors cursor-pointer w-[148px] ${
-              city ? "text-white" : cityDropOpen ? "text-gray-300" : "text-gray-500 hover:text-gray-300"
-            }`}
-          >
-            <span className="flex-1 text-left truncate">{city?.label ?? "Ciudad"}</span>
-            {CHEVRON(cityDropOpen)}
-          </button>
-          <AnimatePresence>
-            {cityDropOpen && (
-              <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.14 }}
-                className="absolute left-0 top-full mt-2 z-30 bg-[#1a1a24] border border-white/12 rounded-2xl py-2 shadow-2xl shadow-black/60 w-52 max-h-80 overflow-y-auto"
-              >
-                {city && (
-                  <button onClick={() => { setCity(null); setCityDropOpen(false); }}
-                    className="w-full text-left text-xs px-4 py-2 text-gray-600 hover:text-gray-400 transition-colors cursor-pointer">
-                    Cualquier ciudad
-                  </button>
-                )}
-                {CITIES.map(c => (
-                  <button key={c.label}
-                    onClick={() => { setCity(city?.label === c.label ? null : c); setCityDropOpen(false); }}
-                    className={`w-full flex items-center justify-between text-sm px-4 py-2.5 transition-colors cursor-pointer ${
-                      city?.label === c.label ? "text-white bg-white/10" : "text-gray-400 hover:bg-white/5 hover:text-white"
-                    }`}
-                  >
-                    {c.label}
-                    {city?.label === c.label && CHECK}
-                  </button>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        <div className="w-px bg-white/8 my-3" />
-
-        {/* Texto libre */}
-        <div className="flex-1 flex items-center gap-2 px-4">
-          <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Cargo, empresa, keyword..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 bg-transparent outline-none text-white placeholder-gray-600 text-sm"
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="text-gray-600 hover:text-white transition-colors cursor-pointer">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+          {/* Tipo de pega */}
+          <div ref={catRef} className="relative flex-1 sm:flex-none">
+            <button
+              onClick={() => { setCatDropOpen(v => !v); setCityDropOpen(false); }}
+              className={`flex items-center gap-2 px-4 py-3.5 text-sm transition-colors cursor-pointer w-full sm:w-[152px] ${
+                category ? "text-white" : catDropOpen ? "text-gray-300" : "text-gray-500 hover:text-gray-300"
+              }`}
+            >
+              <span className="flex-1 text-left truncate">{category?.label ?? "Tipo de pega"}</span>
+              {CHEVRON(catDropOpen)}
             </button>
-          )}
+            <AnimatePresence>
+              {catDropOpen && (
+                <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.14 }}
+                  className="absolute left-0 top-full mt-2 z-30 bg-[#1a1a24] border border-white/12 rounded-2xl py-2 shadow-2xl shadow-black/60 w-52"
+                >
+                  {category && (
+                    <button onClick={() => { setCategory(null); setCatDropOpen(false); }}
+                      className="w-full text-left text-xs px-4 py-2 text-gray-600 hover:text-gray-400 transition-colors cursor-pointer">
+                      Cualquier tipo
+                    </button>
+                  )}
+                  {CATEGORIES.map(c => (
+                    <button key={c.label}
+                      onClick={() => { setCategory(category?.label === c.label ? null : c); setCatDropOpen(false); }}
+                      className={`w-full flex items-center justify-between text-sm px-4 py-2.5 transition-colors cursor-pointer ${
+                        category?.label === c.label ? "text-white bg-white/10" : "text-gray-400 hover:bg-white/5 hover:text-white"
+                      }`}
+                    >
+                      {c.label}
+                      {category?.label === c.label && CHECK}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <div className="w-px bg-white/8 my-3" />
+
+          {/* Ciudad */}
+          <div ref={cityRef} className="relative flex-1 sm:flex-none">
+            <button
+              onClick={() => { setCityDropOpen(v => !v); setCatDropOpen(false); }}
+              className={`flex items-center gap-2 px-4 py-3.5 text-sm transition-colors cursor-pointer w-full sm:w-[148px] ${
+                city ? "text-white" : cityDropOpen ? "text-gray-300" : "text-gray-500 hover:text-gray-300"
+              }`}
+            >
+              <span className="flex-1 text-left truncate">{city?.label ?? "Ciudad"}</span>
+              {CHEVRON(cityDropOpen)}
+            </button>
+            <AnimatePresence>
+              {cityDropOpen && (
+                <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.14 }}
+                  className="absolute left-0 top-full mt-2 z-30 bg-[#1a1a24] border border-white/12 rounded-2xl py-2 shadow-2xl shadow-black/60 w-52 max-h-80 overflow-y-auto"
+                >
+                  {city && (
+                    <button onClick={() => { setCity(null); setCityDropOpen(false); }}
+                      className="w-full text-left text-xs px-4 py-2 text-gray-600 hover:text-gray-400 transition-colors cursor-pointer">
+                      Cualquier ciudad
+                    </button>
+                  )}
+                  {CITIES.map(c => (
+                    <button key={c.label}
+                      onClick={() => { setCity(city?.label === c.label ? null : c); setCityDropOpen(false); }}
+                      className={`w-full flex items-center justify-between text-sm px-4 py-2.5 transition-colors cursor-pointer ${
+                        city?.label === c.label ? "text-white bg-white/10" : "text-gray-400 hover:bg-white/5 hover:text-white"
+                      }`}
+                    >
+                      {c.label}
+                      {city?.label === c.label && CHECK}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* En desktop: separador + búsqueda + filtrar en la misma fila */}
+          <div className="hidden sm:block w-px bg-white/8 my-3" />
+
+          <div className="hidden sm:flex flex-1 items-center gap-2 px-4">
+            <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Cargo, empresa, keyword..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 bg-transparent outline-none text-white placeholder-gray-600 text-sm"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="text-gray-600 hover:text-white transition-colors cursor-pointer">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          <div className="hidden sm:block w-px bg-white/8 my-3" />
+
+          <button
+            onClick={() => setFilterPanelOpen(true)}
+            className={`hidden sm:flex items-center gap-2 px-4 py-3.5 text-sm transition-colors cursor-pointer rounded-r-2xl ${
+              filterCount > 0 ? "text-white" : "text-gray-500 hover:text-gray-300"
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+            </svg>
+            Filtrar
+            {filterCount > 0 && (
+              <span className="w-4 h-4 rounded-full bg-blue-800 text-white text-[10px] flex items-center justify-center font-medium">
+                {filterCount}
+              </span>
+            )}
+          </button>
         </div>
 
-        <div className="w-px bg-white/8 my-3" />
-
-        {/* Filtrar */}
-        <button
-          onClick={() => setFilterPanelOpen(true)}
-          className={`flex items-center gap-2 px-4 py-3.5 text-sm transition-colors cursor-pointer rounded-r-2xl ${
-            filterCount > 0 ? "text-white" : "text-gray-500 hover:text-gray-300"
-          }`}
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-          </svg>
-          Filtrar
-          {filterCount > 0 && (
-            <span className="w-4 h-4 rounded-full bg-blue-800 text-white text-[10px] flex items-center justify-center font-medium">
-              {filterCount}
-            </span>
-          )}
-        </button>
+        {/* Fila inferior en mobile: búsqueda + filtrar */}
+        <div className="flex sm:hidden items-stretch border-t border-white/8">
+          <div className="flex flex-1 items-center gap-2 px-4 py-3">
+            <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Cargo, empresa, keyword..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 bg-transparent outline-none text-white placeholder-gray-600 text-sm"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="text-gray-600 hover:text-white transition-colors cursor-pointer">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          <div className="w-px bg-white/8 my-3" />
+          <button
+            onClick={() => setFilterPanelOpen(true)}
+            className={`flex items-center gap-2 px-4 py-3 text-sm transition-colors cursor-pointer rounded-br-2xl ${
+              filterCount > 0 ? "text-white" : "text-gray-500 hover:text-gray-300"
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+            </svg>
+            Filtrar
+            {filterCount > 0 && (
+              <span className="w-4 h-4 rounded-full bg-blue-800 text-white text-[10px] flex items-center justify-center font-medium">
+                {filterCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Chips activos + conteo */}
